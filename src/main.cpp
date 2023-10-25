@@ -30,10 +30,10 @@
 
 #define ADC_EN              14  //ADC_EN is the ADC detection enable port
 #define ADC_PIN             34
+#define BUTTON_1            35
+#define BUTTON_2            0
 
 TFT_eSPI tft = TFT_eSPI(135, 240); // Invoke custom library
-
-
 
 int pos = 0;
 
@@ -330,7 +330,15 @@ void setup() {
   tft.setRotation(3);
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(3);
-  writeTextToTft("booting");
+
+  // get status of button1 and 2
+  pinMode(BUTTON_1, INPUT_PULLUP);
+  pinMode(BUTTON_2, INPUT_PULLUP);
+  // digital read
+  int button1State = digitalRead(BUTTON_1);
+  int button2State = digitalRead(BUTTON_2);
+
+  writeTextToTft("booting: " + String(button1State) + " " + String(button2State));
 
   pinMode(BUZZER_PIN, OUTPUT); // Set the buzzer pin as an output.
   click(225);
