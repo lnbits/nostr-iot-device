@@ -13,8 +13,9 @@
 #include <SPIFFS.h>
 #include <vector>
 #include <ESP32Ping.h>
-#include <ESP32Servo.h>
 #include "wManager.h"
+#include <TFT_eSPI.h>
+#include <SPI.h>
 
 #include <ArduinoJson.h>
 
@@ -27,7 +28,13 @@
 
 #define PARAM_FILE "/elements.json"
 
-Servo myservo;
+#define ADC_EN              14  //ADC_EN is the ADC detection enable port
+#define ADC_PIN             34
+
+TFT_eSPI tft = TFT_eSPI(135, 240); // Invoke custom library
+
+
+
 int pos = 0;
 
 int triggerAp = false;
@@ -79,10 +86,7 @@ void okEvent(const std::string& key, const char* payload);
 void nip01Event(const std::string& key, const char* payload);
 void relayConnectedEvent(const std::string& key, const std::string& message);
 void relayDisonnectedEvent(const std::string& key, const std::string& message);
-uint16_t getRandomNum(uint16_t min, uint16_t max);
 void loadSettings();
-int64_t getAmountInSatoshis(const String &input);
-String getBolt11InvoiceFromEvent(String jsonStr);
 void createNip91IntentReq();
 void connectToNostrRelays();
 
@@ -98,6 +102,13 @@ void IRAM_ATTR handleButtonInterrupt() {
     doubleTapDetected = true;
   }
   lastButtonPress = now;
+}
+
+void writeTextToTft(String text) {
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextSize(2);
+  tft.setTextDatum(MC_DATUM);
+  tft.drawString(text,  tft.width() / 2, tft.height() / 2 );
 }
 
 // Define the WiFi event callback function
@@ -117,33 +128,6 @@ void WiFiEvent(WiFiEvent_t event) {
   }
 }
 
-void initNeck() {
- // move neck to pos
- // ta 
- myservo.write(90);
-}
-
-void moveNeck() {
-  Serial.println("Moving neck");
-  for (pos = 20; pos <= 140; pos += 1) {
-    myservo.write(pos);
-    delay(15);
-  }
-  for (pos = 140; pos >= 20; pos -= 1) {
-    myservo.write(pos);
-    delay(15);
-  }
-  for (pos = 20; pos <= 140; pos += 1) {
-    myservo.write(pos);
-    delay(15);
-  }
-  for (pos = 140; pos >= 20; pos -= 1) {
-    myservo.write(pos);
-    delay(15);
-  }
-  initNeck();
-}
-
 //free rtos task for lamp control
 void lampControlTask(void *pvParameters) {
   Serial.println("Starting lamp control task");
@@ -161,7 +145,7 @@ void lampControlTask(void *pvParameters) {
       int zapAmount = zapAmountsFlashQueue[0];
       zapAmountsFlashQueue.erase(zapAmountsFlashQueue.begin());
       xSemaphoreGive(zapMutex);
-      moveNeck();
+      // moveNeck();
     }
     vTaskDelay(100 / portTICK_PERIOD_MS);
   }
@@ -183,7 +167,7 @@ void createNip91IntentReq() {
   // eventRequestOptions->authors = authors;
   // eventRequestOptions->authors_count = sizeof(authors) / sizeof(authors[0]);
 
-  eventRequestOptions->limit = 0;
+  eventRequestOptions->limit = 1;
 
   // We store this here for sending this request again if a socket reconnects
   serialisedEventRequest = "[\"REQ\", \"" + nostrRelayManager.getNewSubscriptionId() + "\"," + eventRequestOptions->toJson() + "]";
@@ -308,90 +292,18 @@ void nip01Event(const std::string& key, const char* payload) {
     }
 }
 
-String getBolt11InvoiceFromEvent(String jsonStr) {
-  // Remove all JSON formatting characters
-  String str = jsonStr.substring(1, jsonStr.length()-1); // remove the first and last square brackets
-  str.replace("\\", ""); // remove all backslashes
-
-  // Search for the "bolt11" substring
-  int index = str.indexOf("bolt11");
-
-  // Extract the value associated with "bolt11"
-  String bolt11 = "";
-  if (index != -1) {
-    int start = index + 9; // the value of "bolt11" starts 9 characters after the substring index
-    int end = start; // initialize the end index
-    while (str.charAt(end) != '\"') {
-      end++; // increment the end index until the closing double-quote is found
-    }
-    bolt11 = str.substring(start, end); // extract the value of "bolt11"
-  }
-  return bolt11;
-}
-
-/**
- * @brief Get the Amount In Satoshis from a lightning bol11 invoice
- * 
- * @param input 
- * @return int64_t 
- */
-int64_t getAmountInSatoshis(const String &input) {
-    int64_t number = -1;
-    char multiplier = ' ';
-
-    for (unsigned int i = 0; i < input.length(); ++i) {
-        if (isdigit(input[i])) {
-            number = 0;
-            while (isdigit(input[i])) {
-                number = number * 10 + (input[i] - '0');
-                ++i;
-            }
-            for (unsigned int j = i; j < input.length(); ++j) {
-                if (isalpha(input[j])) {
-                    multiplier = input[j];
-                    break;
-                }
-            }
-            break;
-        }
-    }
-
-    if (number == -1 || multiplier == ' ') {
-        return -1;
-    }
-
-    int64_t satoshis = number;
-
-    switch (multiplier) {
-        case 'm':
-            satoshis *= 100000; // 0.001 * 100,000,000
-            break;
-        case 'u':
-            satoshis *= 100; // 0.000001 * 100,000,000
-            break;
-        case 'n':
-            satoshis /= 10; // 0.000000001 * 100,000,000
-            break;
-        case 'p':
-            satoshis /= 10000; // 0.000000000001 * 100,000,000
-            break;
-        default:
-            return -1;
-    }
-
-    return satoshis;
-}
-
-
-uint16_t getRandomNum(uint16_t min, uint16_t max) {
-  uint16_t rand  = (esp_random() % (max - min + 1)) + min;
-  Serial.println("Random number: " + String(rand));
-  return rand;
-}
-
 void iotIntentEvent(const std::string& key, const char* payload) {
     // if(lastPayload != payload) { // Prevent duplicate events from multiple relays triggering the same logic, as we are using multiple relays, this is likely to happen
       lastPayload = payload;
+      Serial.println("payload is: ");
+      Serial.println(payload);
+      // decrypt...
+
+      // declar npubHexString
+      char npubHexString[80] = "c63fbf2c708b8dcd9049ca61f01b48e9b19d023c3363fd2797ee8842dc48c45e";
+      String dmMessage = nostr.decryptDm(npubHexString, payload);
+      Serial.println("message is: ");
+      Serial.println(dmMessage);
       queueMovement(1);
     // }
 }
@@ -414,8 +326,11 @@ void setup() {
   Serial.begin(115200);
   Serial.println("boot");
 
-  myservo.setPeriodHertz(50);    // Standard 50Hz servo
-  myservo.attach(13, 500, 2400); // Pin 13 with a pulse width range of 500 to 2400
+  tft.init();
+  tft.setRotation(3);
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextSize(3);
+  writeTextToTft("booting");
 
   pinMode(BUZZER_PIN, OUTPUT); // Set the buzzer pin as an output.
   click(225);

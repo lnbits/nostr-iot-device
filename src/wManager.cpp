@@ -19,7 +19,7 @@ bool shouldSaveConfig = false;
 int buttonPin = 4; // Pin number where the button is connected
 
 // Variables to hold data from custom textboxes
-char npubHexString[80] = "";
+char npubHexString[80] = "22defd21ef1187806b54033e9d657d4430d98efaebd1289bb24b82224b80c7b4";
 char relayString[80] = "nos.lol";
 
 bool hasInternetConnection = false;
@@ -139,14 +139,14 @@ void init_WifiManager()
   // Change to true when testing to force configuration every time we run
   bool forceConfig = false;
   // Check if button is pressed to enter configMode with actual configuration
-  if(digitalRead(buttonPin) == LOW){
-    Serial.println(F("Forcing config mode"));
-    forceConfig = true;
-    // clear any SPIFFs storage
-    wm.resetSettings();
-    delay(1000);
-    wm.setBreakAfterConfig(true); //Set to detect config edition and save
- }
+//   if(digitalRead(buttonPin) == LOW){
+//     Serial.println(F("Forcing config mode"));
+//     forceConfig = true;
+//     // clear any SPIFFs storage
+//     wm.resetSettings();
+//     delay(1000);
+//     wm.setBreakAfterConfig(true); //Set to detect config edition and save
+//  }
   bool spiffsSetup = loadConfigFile();
   if (!spiffsSetup)
   {
