@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include <WiFi.h>
+#include "settings.h"
+#include <WiFiClientSecure.h>
 #include <WebServer.h>
 #include "time.h"
 #include <NostrEvent.h>
@@ -13,7 +14,6 @@
 #include <SPIFFS.h>
 #include <vector>
 #include <ESP32Ping.h>
-#include "wManager.h"
 #include <TFT_eSPI.h>
 #include <SPI.h>
 
@@ -44,7 +44,6 @@ bool lastInternetConnectionState = true;
 int socketDisconnectedCount = 0;
 
 int ledPin = 15; // Pin number where the LED is connected
-extern int buttonPin; // Pin number where the button is connected
 int minFlashDelay = 100; // Minimum delay between flashes (in milliseconds)
 int maxFlashDelay = 5000; // Maximum delay between flashes (in milliseconds)
 int lightBrightness = 50; // The brightness of the LED (0-255)
@@ -60,16 +59,15 @@ NostrQueueProcessor nostrQueue;
 
 String serialisedEventRequest;
 
-extern bool hasInternetConnection;
-
 NostrRequestOptions* eventRequestOptions;
 
 bool hasSentEvent = false;
 
 bool isBuzzerEnabled = false;
 
-extern char npubHexString[80];
-extern char relayString[80];
+char deviceSk[80] = DEVICE_SK;
+char devicePk[80] = DEVICE_PK;
+char relayString[80] = RELAY;
 
 fs::SPIFFSFS &FlashFS = SPIFFS;
 #define FORMAT_ON_FAIL true
@@ -109,23 +107,6 @@ void writeTextToTft(String text) {
   tft.setTextSize(2);
   tft.setTextDatum(MC_DATUM);
   tft.drawString(text,  tft.width() / 2, tft.height() / 2 );
-}
-
-// Define the WiFi event callback function
-void WiFiEvent(WiFiEvent_t event) {
-  switch(event) {
-    case SYSTEM_EVENT_STA_GOT_IP:
-      Serial.println("Connected to WiFi and got an IP");
-      click(225);
-      delay(100);
-      click(225);
-      connectToNostrRelays();      
-      break;
-    case SYSTEM_EVENT_STA_DISCONNECTED:
-      Serial.println("Disconnected from WiFi");
-      // WiFi.begin(ssid, password); // Try to reconnect after getting disconnected
-      break;
-  }
 }
 
 //free rtos task for lamp control
@@ -300,8 +281,7 @@ void iotIntentEvent(const std::string& key, const char* payload) {
       // decrypt...
 
       // declar npubHexString
-      char npubHexString[80] = "c63fbf2c708b8dcd9049ca61f01b48e9b19d023c3363fd2797ee8842dc48c45e";
-      String dmMessage = nostr.decryptDm(npubHexString, payload);
+      String dmMessage = nostr.decryptDm(deviceSk, payload);
       Serial.println("message is: ");
       Serial.println(dmMessage);
       queueMovement(1);
@@ -340,6 +320,16 @@ void setup() {
 
   writeTextToTft("booting: " + String(button1State) + " " + String(button2State));
 
+  // connect to wifi using standard arduino method with ssid and password
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.println("Connecting to WiFi..");
+    writeTextToTft("Connecting to WiFi..");
+  }
+  writeTextToTft("Connected to WiFi");
+  
+
   pinMode(BUZZER_PIN, OUTPUT); // Set the buzzer pin as an output.
   click(225);
 
@@ -351,10 +341,6 @@ void setup() {
   }
 
   zapMutex = xSemaphoreCreateMutex();
-
-  buttonPin = 4;
-  // Set the button pin as INPUT
-  pinMode(buttonPin, INPUT_PULLUP);
 
   randomSeed(analogRead(0)); // Seed the random number generator
 
@@ -368,15 +354,9 @@ void setup() {
     NULL,             /* Task handle. */
     1);               /* Core where the task should run */
 
-  WiFi.onEvent(WiFiEvent);
-  init_WifiManager();
-
   createNip91IntentReq();
 
-   if(hasInternetConnection) {
-    Serial.println("Has internet connection. Connectring to relays");
-    connectToNostrRelays();
-   }
+  connectToNostrRelays();
 
   // Set the LED to the desired intensity
   analogWrite(ledPin, lightBrightness);
