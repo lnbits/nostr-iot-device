@@ -140,13 +140,13 @@ void createNip91IntentReq() {
   // Create the REQ
   eventRequestOptions = new NostrRequestOptions();
   // Populate kinds
-  int kinds[] = {8000};
+  int kinds[] = {4};
   eventRequestOptions->kinds = kinds;
   eventRequestOptions->kinds_count = sizeof(kinds) / sizeof(kinds[0]);
 
-  // String authors[] = {"c7c9bef6312c220e6de50897219904d67d272049eb251cefd0f2ff296f0698e7"};
-  // eventRequestOptions->authors = authors;
-  // eventRequestOptions->authors_count = sizeof(authors) / sizeof(authors[0]);
+  String authors[] = {"d58d5dc2abdef2195532b0940d56bc44c693b48084bf11d0bb70035510c9e6b5"};
+  eventRequestOptions->authors = authors;
+  eventRequestOptions->authors_count = sizeof(authors) / sizeof(authors[0]);
 
   eventRequestOptions->limit = 1;
 
@@ -190,6 +190,7 @@ void connectToNostrRelays() {
   nostrRelayManager.setEventCallback("connected", relayConnectedEvent);
   nostrRelayManager.setEventCallback("disconnected", relayDisonnectedEvent);
   nostrRelayManager.setEventCallback(8000, iotIntentEvent);
+  nostrRelayManager.setEventCallback(4, iotIntentEvent);
 
   Serial.println("connecting");
   nostrRelayManager.connect();
@@ -274,18 +275,17 @@ void nip01Event(const std::string& key, const char* payload) {
 }
 
 void iotIntentEvent(const std::string& key, const char* payload) {
-    // if(lastPayload != payload) { // Prevent duplicate events from multiple relays triggering the same logic, as we are using multiple relays, this is likely to happen
+    if(lastPayload != payload) { // Prevent duplicate events from multiple relays triggering the same logic, as we are using multiple relays, this is likely to happen
       lastPayload = payload;
       Serial.println("payload is: ");
       Serial.println(payload);
-      // decrypt...
 
-      // declar npubHexString
+      nostr.setLogging(true);
       String dmMessage = nostr.decryptDm(deviceSk, payload);
-      Serial.println("message is: ");
-      Serial.println(dmMessage);
+      // Serial.println("message is: ");
+      // Serial.println(dmMessage);
       queueMovement(1);
-    // }
+    }
 }
 
 void click(int period)
@@ -345,14 +345,14 @@ void setup() {
   randomSeed(analogRead(0)); // Seed the random number generator
 
   // start lamp control task
-  xTaskCreatePinnedToCore(
-    lampControlTask,   /* Task function. */
-    "lampControlTask",     /* String with name of task. */
-    5000,            /* Stack size in bytes. */
-    NULL,             /* Parameter passed as input of the task */
-    2,                /* Priority of the task. */
-    NULL,             /* Task handle. */
-    1);               /* Core where the task should run */
+  // xTaskCreatePinnedToCore(
+  //   lampControlTask,   /* Task function. */
+  //   "lampControlTask",     /* String with name of task. */
+  //   5000,            /* Stack size in bytes. */
+  //   NULL,             /* Parameter passed as input of the task */
+  //   2,                /* Priority of the task. */
+  //   NULL,             /* Task handle. */
+  //   1);               /* Core where the task should run */
 
   createNip91IntentReq();
 
@@ -368,24 +368,6 @@ void setup() {
 bool lastInternetConnectionCheckTime = 0;
 
 void loop() {
-  // send ping to Quad9 9.9.9.9 every 10 seconds to check for internet connection
-  if (millis() - lastInternetConnectionCheckTime > 10000) {
-    if(WiFi.status() == WL_CONNECTED) {
-      IPAddress ip(9,9,9,9);  // Quad9 DNS
-      bool ret = Ping.ping(ip);
-      if(ret) {
-        if(!lastInternetConnectionState) {
-          Serial.println("Internet connection has come back! :D");
-          // reboot
-          ESP.restart();
-        }
-        lastInternetConnectionState = true;
-      } else {
-        lastInternetConnectionState = false;
-      }
-    }
-  }
-
   nostrRelayManager.loop();
   nostrRelayManager.broadcastEvents();
 
