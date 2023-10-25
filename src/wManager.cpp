@@ -166,8 +166,8 @@ void init_WifiManager()
   // Set config save notify callback
   wm.setSaveConfigCallback(saveConfigCallback);
 
-  wm.setHostname("Nip91Nostrich");
-  wm.setTitle("Nip91Nostrich");
+  wm.setHostname("107Demo");
+  wm.setTitle("107Demo");
 
   // Set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
   wm.setAPCallback(configModeCallback);
@@ -199,7 +199,7 @@ void init_WifiManager()
     //No configuramos timeout al modulo
     wm.setConfigPortalBlocking(true); //Hacemos que el portal SI bloquee el firmware
     // tft.pushImage(0, 0, setupModeWidth, setupModeHeight, setupModeScreen);
-    if (!wm.startConfigPortal("ZapLampAP","ZipZapZop"))
+    if (!wm.startConfigPortal("107Demo","ToTheMoon1"))
     {
       Serial.println("failed to connect and hit timeout");
       //Could be break forced after edditing, so save new config
@@ -217,7 +217,7 @@ void init_WifiManager()
   {
     //Tratamos de conectar con la configuración inicial ya almacenada
     wm.setCaptivePortalEnable(false); // disable captive portal redirection
-    if (!wm.autoConnect("Nip91Nostrich","ZipZapZop"))
+    if (!wm.autoConnect("107Demo","ToTheMoon1"))
     {
       Serial.println("Failed to connect and hit timeout");
       //delay(3000);
