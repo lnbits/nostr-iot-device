@@ -84,7 +84,6 @@ void createIntentReq() {
 void connectToNostrRelays() {
   // first disconnect from all relays
   nostrRelayManager.disconnect();
-  Serial.println("Requesting Zap notifications");
 
   // split relayString by comma into vector
   std::vector<String> relays;
@@ -106,14 +105,13 @@ void connectToNostrRelays() {
   nostrRelayManager.setMinRelaysAndTimeout(1,10000);
 
   // Set some event specific callbacks here
-  Serial.println("Setting callbacks");
   nostrRelayManager.setEventCallback("ok", okEvent);
   nostrRelayManager.setEventCallback("connected", relayConnectedEvent);
   nostrRelayManager.setEventCallback("disconnected", relayDisonnectedEvent);
   nostrRelayManager.setEventCallback(8000, iotIntentEvent);
-  // nostrRelayManager.setEventCallback(4, iotIntentEvent);
 
-  Serial.println("connecting");
+  Serial.println("Connecting to Nostr relays");
+  writeTextToTft("Connecting to Nostr relays");
   nostrRelayManager.connect();
 
 }
@@ -122,20 +120,24 @@ String lastPayload = "";
 
 void relayConnectedEvent(const std::string& key, const std::string& message) {
   socketDisconnectedCount = 0;
-  Serial.println("Relay connected: ");
+  Serial.println("Relay connected.");
+  writeTextToTft("Relay connected.");
   
-  Serial.print(F("Requesting events:"));
+  Serial.print(F("Requesting events."));
   Serial.println(serialisedEventRequest);
+  writeTextToTft("Requesting events.");
 
   nostrRelayManager.broadcastEvent(serialisedEventRequest);
 }
 
 void relayDisonnectedEvent(const std::string& key, const std::string& message) {
   Serial.println("Relay disconnected: ");
+  writeTextToTft("Relay disconnected: ");
   socketDisconnectedCount++;
   // reboot after 3 socketDisconnectedCount subsequenet messages
   if(socketDisconnectedCount >= 3) {
     Serial.println("Too many socket disconnections. Restarting");
+    writeTextToTft("Too many socket disconnections. Restarting");
     // restart device
     ESP.restart();
   }
@@ -152,6 +154,7 @@ void okEvent(const std::string& key, const char* payload) {
       lastPayload = payload;
       Serial.println("payload is: ");
       Serial.println(payload);
+      writeTextToTft("OK - " + String(payload));
     }
 }
  
@@ -164,8 +167,9 @@ void okEvent(const std::string& key, const char* payload) {
 void iotIntentEvent(const std::string& key, const char* payload) {
   if(lastPayload != payload) { // Prevent duplicate events from multiple relays triggering the same logic, as we are using multiple relays, this is likely to happen
     lastPayload = payload;
-    Serial.println("payload is: ");
+    Serial.println("ioT intent event:");
     Serial.println(payload);
+    writeTextToTft("ioT intent event");
   }
 }
 
@@ -178,7 +182,7 @@ void setup() {
   tft.fillScreen(TFT_BLACK);
   tft.setTextSize(3);
 
-  writeTextToTft("booting");
+  writeTextToTft("Booting");
 
   // connect to wifi using standard arduino method with ssid and password
   WiFi.begin(WIFI_SSID, WIFI_PASS);
@@ -190,12 +194,10 @@ void setup() {
   writeTextToTft("Connected to WiFi");
 
   createIntentReq();
-
   connectToNostrRelays();
 
   // Set the LED to the desired intensity
   analogWrite(ledPin, lightBrightness);
-
 }
 
 /**
