@@ -20,16 +20,11 @@
 
 TFT_eSPI tft = TFT_eSPI(135, 240); // Invoke custom library
 
-int pos = 0;
-
-bool lastInternetConnectionState = true;
+const size_t capacity = JSON_OBJECT_SIZE(2) + 70;
 
 int socketDisconnectedCount = 0;
-
 int ledPin = 15; // Pin number where the LED is connected
 int lightBrightness = 50; // The brightness of the LED (0-255)
-
-SemaphoreHandle_t zapMutex;
 
 NostrEvent nostr;
 NostrRelayManager nostrRelayManager;
@@ -39,21 +34,13 @@ String serialisedEventRequest;
 
 NostrRequestOptions* eventRequestOptions;
 
-bool hasSentEvent = false;
-
-bool isBuzzerEnabled = false;
-
 char deviceSk[80] = DEVICE_SK;
 char devicePk[80] = DEVICE_PK;
 char relayString[80] = RELAY;
 
-fs::SPIFFSFS &FlashFS = SPIFFS;
-#define FORMAT_ON_FAIL true
-
 // define funcs
 void iotIntentEvent(const std::string& key, const char* payload);
 void okEvent(const std::string& key, const char* payload);
-void nip01Event(const std::string& key, const char* payload);
 void relayConnectedEvent(const std::string& key, const std::string& message);
 void relayDisonnectedEvent(const std::string& key, const std::string& message);
 void createIntentReq();
@@ -154,6 +141,12 @@ void relayDisonnectedEvent(const std::string& key, const std::string& message) {
   }
 }
 
+/**
+ * @brief Callback for when an OK event is received from a relay
+ * 
+ * @param key 
+ * @param payload 
+ */
 void okEvent(const std::string& key, const char* payload) {
     if(lastPayload != payload) { // Prevent duplicate events from multiple relays triggering the same logic
       lastPayload = payload;
@@ -161,20 +154,13 @@ void okEvent(const std::string& key, const char* payload) {
       Serial.println(payload);
     }
 }
-
-void nip01Event(const std::string& key, const char* payload) {
-    if(lastPayload != payload) { // Prevent duplicate events from multiple relays triggering the same logic
-      lastPayload = payload;
-      // We can convert the payload to a StaticJsonDocument here and get the content
-      StaticJsonDocument<1024> eventJson;
-      deserializeJson(eventJson, payload);
-      String pubkey = eventJson[2]["pubkey"].as<String>();
-      String content = eventJson[2]["content"].as<String>();
-      Serial.println(pubkey + ": " + content);
-    }
-}
-
-
+ 
+/**
+ * @brief Callback for when an IoT intent event is received from a relay
+ * 
+ * @param key 
+ * @param payload 
+ */
 void iotIntentEvent(const std::string& key, const char* payload) {
   if(lastPayload != payload) { // Prevent duplicate events from multiple relays triggering the same logic, as we are using multiple relays, this is likely to happen
     lastPayload = payload;
@@ -212,6 +198,11 @@ void setup() {
 
 }
 
+/**
+ * @brief Control the lamp
+ * 
+ * @param state 
+ */
 void controlLamp(int state) {
   if(state == 1) {
     analogWrite(ledPin, 255);
@@ -220,26 +211,11 @@ void controlLamp(int state) {
   }
 }
 
-bool lastInternetConnectionCheckTime = 0;
-
-
-const size_t capacity = JSON_OBJECT_SIZE(2) + 70;
-
-void loop() {
-  nostrRelayManager.loop();
-  nostrRelayManager.broadcastEvents();
-
-  // reboot every hour
-  if (millis() > 3600000) {
-    Serial.println("Rebooting");
-    ESP.restart();
-  }
-
-  // if lastpayload is set, then decrpyt it
-  if(lastPayload != "") {
-    String message = nostr.decryptDm("c63fbf2c708b8dcd9049ca61f01b48e9b19d023c3363fd2797ee8842dc48c45e", lastPayload);
+void handlePayload(String payload) {
+  // if lastpayload is set, then decypt it
+  if(payload != "") {
+    String message = nostr.decryptDm("c63fbf2c708b8dcd9049ca61f01b48e9b19d023c3363fd2797ee8842dc48c45e", payload);
     Serial.println(message);
-    lastPayload = "";
     // Create a StaticJsonDocument object
     StaticJsonDocument<capacity> doc;
 
@@ -266,6 +242,22 @@ void loop() {
     if(strcmp(name, "temperature") == 0) {
       writeTextToTft(String(value), 4);
     }
+  }
+}
+
+void loop() {
+  nostrRelayManager.loop();
+  nostrRelayManager.broadcastEvents();
+
+  // reboot every hour. Helps with memory leaks and sometimes, relays disconnect but dont trigger the disconnect event
+  if (millis() > 3600000) {
+    Serial.println("Rebooting");
+    ESP.restart();
+  }
+
+  if(lastPayload != "") {
+    handlePayload(lastPayload);
+    lastPayload = "";
   }
 
 }
