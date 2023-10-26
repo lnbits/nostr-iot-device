@@ -136,6 +136,11 @@ void iotIntentEvent(const std::string& key, const char* payload) {
   }
 }
 
+/**
+ * @brief Handle the last received payload
+ * 
+ * @param payload 
+ */
 void handlePayload(String payload) {
   // if lastpayload is set, then decypt it
   if(payload != "") {
@@ -163,9 +168,9 @@ void handlePayload(String payload) {
     if(strcmp(name, "light") == 0) {
       controlLamp(value);
     }
-    // if temperature, show on the screen
+    // if temperature, then set the temperature
     if(strcmp(name, "temperature") == 0) {
-      writeTextToTft(String(value), 4);
+      setTemperature(value);
     }
   }
 }

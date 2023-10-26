@@ -8,3 +8,5 @@ void writeTextToTft(String text, int size = 2);
 
 void initLamp();
 void controlLamp(int state);
+
+void setTemperature(int temperature);
