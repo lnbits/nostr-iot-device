@@ -30,8 +30,8 @@ jobs:
             - name: base64
             - name: Nostr
             - name: ESP32Servo
-# --library libraries/ESP32Ping
-# --library libraries/TFT_eSPI
+            - source-path: libraries/ESP32Ping
+            - source-path: libraries/TFT_eSPI
 
       - uses: actions/upload-artifact@v2
         with:
