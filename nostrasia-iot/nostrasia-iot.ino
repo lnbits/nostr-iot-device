@@ -20,11 +20,9 @@ String config_password= "null";
 #include "common.h"
 #include "nostr.h"
 
-// Serial config
-int portalPin = 14;
-
 String lastPayload = "";
 int ledPin = 15;
+int portalPin = 27;
 
 StaticJsonDocument<2500> doc;
 
@@ -67,8 +65,8 @@ void setup() {
   int timer = 0;
   while (timer < 2000) {
       digitalWrite(2, HIGH);
-      Serial.println("Detecting portalPin: " + String(touchRead(portalPin)));
-      writeTextToTft("Detecting portalPin: " + String(touchRead(portalPin)));
+      Serial.println("detecting config mode... pin: " + String(portalPin) + ", value: " + String(touchRead(portalPin)));
+      writeTextToTft("detecting config mode... pin: " + String(portalPin) + ", value: " + String(touchRead(portalPin)));
       if (touchRead(portalPin) < 60) {
           triggerConfig = true;
           timer = 5000;
@@ -79,9 +77,9 @@ void setup() {
       delay(150);
   }
   setupConfig();
-  if(triggerConfig == true || config_ssid == "" || config_ssid == "null"){
-      Serial.println("Launch serial config");
-      writeTextToTft("Launch serial config");
+  if(triggerConfig == true || config_ssid == "" || config_ssid == "null" || config_pk == "null"){
+      Serial.println("serial config mode!");
+      writeTextToTft("serial config mode!");
       configOverSerialPort();
   }
   else{
