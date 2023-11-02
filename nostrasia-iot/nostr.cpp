@@ -141,7 +141,7 @@ void iotIntentEvent(const std::string& key, const char* payload) {
  *
  * @param payload
  */
-void handlePayload(String payload) {
+void handlePayload(String payload, String config_pk) {
   // if lastpayload is set, then decypt it
   if(payload != "") {
     String message = nostr.decryptDm(config_pk.c_str(), payload);

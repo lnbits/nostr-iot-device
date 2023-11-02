@@ -21,7 +21,10 @@ String config_password= "null";
 #include "nostr.h"
 
 // Serial config
-int portalPin = 15;
+int portalPin = 14;
+
+String lastPayload = "";
+int ledPin = 15;
 
 StaticJsonDocument<2500> doc;
 
@@ -49,9 +52,6 @@ void setupConfig() {
         Serial.println("Nostr private key (hardcoded): " + config_pk);
     }
 }
-
-String lastPayload = "";
-int ledPin = 15;
 
 void setup() {
   Serial.begin(115200);
@@ -120,7 +120,7 @@ void loop() {
   }
 
   if(lastPayload != "") {
-    handlePayload(lastPayload);
+    handlePayload(lastPayload, config_pk);
     lastPayload = "";
   }
 

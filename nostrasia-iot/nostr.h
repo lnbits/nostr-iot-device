@@ -13,10 +13,9 @@
 
 void createIntentReq();
 void connectToNostrRelays();
-void handlePayload(String payload);
+void handlePayload(String payload, String config_pk);
 void iotIntentEvent(const std::string& key, const char* payload);
 void okEvent(const std::string& key, const char* payload);
 void relayConnectedEvent(const std::string& key, const std::string& message);
 void relayDisonnectedEvent(const std::string& key, const std::string& message);
-void handlePayload(String payload);
 void nostrLoop();
