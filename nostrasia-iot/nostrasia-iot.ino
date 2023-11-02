@@ -22,7 +22,7 @@ String config_ssid = "null";
 String config_password= "null";
 
 // Serial config
-int portalPin = 4;
+int portalPin = 15;
 
 StaticJsonDocument<2500> doc;
 
@@ -69,6 +69,7 @@ void setup() {
   while (timer < 2000) {
       digitalWrite(2, HIGH);
       Serial.println("Detecting portalPin: " + String(touchRead(portalPin)));
+      writeTextToTft("Detecting portalPin: " + String(touchRead(portalPin)));
       if (touchRead(portalPin) < 60) {
           triggerConfig = true;
           timer = 5000;
@@ -81,6 +82,7 @@ void setup() {
   setupConfig();
   if(triggerConfig == true || config_ssid == "" || config_ssid == "null"){
       Serial.println("Launch serial config");
+      writeTextToTft("Launch serial config");
       configOverSerialPort();
   }
   else{

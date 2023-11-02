@@ -30,12 +30,12 @@ export const elements = [
     name: "config_password",
     value: "",
     label: "WiFi password",
-    type: "text",
+    type: "password",
   },
   {
     name: "config_nsec",
     value: "",
-    label: "Nostr NSEC",
-    type: "text",
+    label: "Nostr NSEC (hex)",
+    type: "password",
   }
 ];

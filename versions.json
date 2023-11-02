@@ -1,0 +1,7 @@
+{
+  "name": "nostrasia-iot",
+  "devices": [
+    "esp32"
+  ],
+  "versions": []
+}
