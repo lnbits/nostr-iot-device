@@ -1,6 +1,6 @@
 #!/bin/sh
 PROJECT_NAME=nostrasia-iot
-RELEASE=https://github.com/lnbits/hardware-installer/releases/download
+RELEASE=https://github.com/lnbits/nostr-iot-device/releases/download
 INSTALLER_REPO=https://github.com/lnbits/hardware-installer
 INSTALLER_PATH=./hardware-installer/public/firmware
 
