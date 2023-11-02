@@ -12,14 +12,13 @@ struct KeyValue {
     String value;
 };
 
+String config_pk = "null";
+String config_ssid = "null";
+String config_password= "null";
+
 #include "settings.h"
 #include "common.h"
 #include "nostr.h"
-
-
-String config_nsec = "null";
-String config_ssid = "null";
-String config_password= "null";
 
 // Serial config
 int portalPin = 15;
@@ -42,12 +41,12 @@ void setupConfig() {
     else{
         Serial.println("SSID password (hardcoded): " + config_password);
     }
-    if(config_nsec == "null"){
-        config_nsec = getJsonValue(doc, "config_nsec");
-        Serial.println("Nostr nsec (memory): " + config_nsec);
+    if(config_pk == "null"){
+        config_pk = getJsonValue(doc, "config_pk");
+        Serial.println("Nostr private key (memory): " + config_pk);
     }
     else{
-        Serial.println("Nostr nsec (hardcoded): " + config_nsec);
+        Serial.println("Nostr private key (hardcoded): " + config_pk);
     }
 }
 

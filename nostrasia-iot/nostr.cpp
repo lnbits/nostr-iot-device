@@ -20,7 +20,7 @@ extern String lastPayload;
 
 /**
  * @brief Create a Zap Event Request object
- * 
+ *
  */
 void createIntentReq() {
   // Create the REQ
@@ -44,7 +44,7 @@ void createIntentReq() {
 
 /**
  * @brief Connect to the Nostr relays
- * 
+ *
  */
 void connectToNostrRelays() {
   // first disconnect from all relays
@@ -85,7 +85,7 @@ void relayConnectedEvent(const std::string& key, const std::string& message) {
   socketDisconnectedCount = 0;
   Serial.println("Relay connected.");
   writeTextToTft("Relay connected.");
-  
+
   Serial.print(F("Requesting events."));
   Serial.println(serialisedEventRequest);
   writeTextToTft("Requesting events.");
@@ -108,9 +108,9 @@ void relayDisonnectedEvent(const std::string& key, const std::string& message) {
 
 /**
  * @brief Callback for when an OK event is received from a relay
- * 
- * @param key 
- * @param payload 
+ *
+ * @param key
+ * @param payload
  */
 void okEvent(const std::string& key, const char* payload) {
     if(lastPayload != payload) { // Prevent duplicate events from multiple relays triggering the same logic
@@ -120,12 +120,12 @@ void okEvent(const std::string& key, const char* payload) {
       writeTextToTft("OK - " + String(payload));
     }
 }
- 
+
 /**
  * @brief Callback for when an IoT intent event is received from a relay
- * 
- * @param key 
- * @param payload 
+ *
+ * @param key
+ * @param payload
  */
 void iotIntentEvent(const std::string& key, const char* payload) {
   if(lastPayload != payload) { // Prevent duplicate events from multiple relays triggering the same logic, as we are using multiple relays, this is likely to happen
@@ -138,13 +138,13 @@ void iotIntentEvent(const std::string& key, const char* payload) {
 
 /**
  * @brief Handle the last received payload
- * 
- * @param payload 
+ *
+ * @param payload
  */
 void handlePayload(String payload) {
   // if lastpayload is set, then decypt it
   if(payload != "") {
-    String message = nostr.decryptDm("c63fbf2c708b8dcd9049ca61f01b48e9b19d023c3363fd2797ee8842dc48c45e", payload);
+    String message = nostr.decryptDm(config_pk.c_str(), payload);
     Serial.println(message);
     // Create a StaticJsonDocument object
     StaticJsonDocument<capacity> doc;
@@ -177,7 +177,7 @@ void handlePayload(String payload) {
 
 /**
  * @brief Nostr loop actions
- * 
+ *
  */
 void nostrLoop() {
   nostrRelayManager.loop();

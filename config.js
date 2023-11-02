@@ -33,9 +33,9 @@ export const elements = [
     type: "password",
   },
   {
-    name: "config_nsec",
+    name: "config_pk",
     value: "",
-    label: "Nostr NSEC (hex)",
+    label: "Nostr private key (hex)",
     type: "password",
   }
 ];
