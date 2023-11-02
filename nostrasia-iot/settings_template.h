@@ -1,0 +1,9 @@
+// wifi creds
+#define WIFI_SSID "<YOUR_SSID>"
+#define WIFI_PASS "<YOUR_PASSWORD>"
+// nostr details
+#define RELAY "nos.lol"
+#define DEVICE_SK "c63fbf2c708b8dcd9049ca61f01b48e9b19d023c3363fd2797ee8842dc48c45e"
+#define DEVICE_PK "22defd21ef1187806b54033e9d657d4430d98efaebd1289bb24b82224b80c7b4"
+#define DEVICE_ID "107107"
+#define REMOTE_CONTROL_PK "d58d5dc2abdef2195532b0940d56bc44c693b48084bf11d0bb70035510c9e6b5"
