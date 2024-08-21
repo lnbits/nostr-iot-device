@@ -30,7 +30,7 @@ void createIntentReq() {
   eventRequestOptions->kinds = kinds;
   eventRequestOptions->kinds_count = sizeof(kinds) / sizeof(kinds[0]);
 
-  String authors[] = {"d58d5dc2abdef2195532b0940d56bc44c693b48084bf11d0bb70035510c9e6b5"};
+  String authors[] = {String(REMOTE_CONTROL_PK)};
   eventRequestOptions->authors = authors;
   eventRequestOptions->authors_count = sizeof(authors) / sizeof(authors[0]);
 
@@ -144,7 +144,7 @@ void iotIntentEvent(const std::string& key, const char* payload) {
 void handlePayload(String payload) {
   // if lastpayload is set, then decypt it
   if(payload != "") {
-    String message = nostr.decryptDm("c63fbf2c708b8dcd9049ca61f01b48e9b19d023c3363fd2797ee8842dc48c45e", payload);
+    String message = nostr.decryptDm(DEVICE_SK, payload);
     Serial.println(message);
     // Create a StaticJsonDocument object
     StaticJsonDocument<capacity> doc;

@@ -3,7 +3,7 @@
 #include "nostr.h"
 
 String lastPayload = "";
-int ledPin = 15;
+int ledPin = 27;
 
 void setup() {
   Serial.begin(115200);
