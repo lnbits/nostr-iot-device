@@ -144,7 +144,7 @@ void iotIntentEvent(const std::string& key, const char* payload) {
 void handlePayload(String payload, String config_pk) {
   // if lastpayload is set, then decypt it
   if(payload != "") {
-    String message = nostr.decryptDm(DEVICE_SK, payload);
+    String message = nostr.decryptDm(config_pk.c_str(), payload);
     Serial.println(message);
     // Create a StaticJsonDocument object
     StaticJsonDocument<capacity> doc;
