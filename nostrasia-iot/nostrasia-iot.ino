@@ -21,8 +21,8 @@ String config_password= "null";
 #include "nostr.h"
 
 String lastPayload = "";
-int ledPin = 15;
-int portalPin = 27;
+int ledPin = 27;
+int portalPin = 4;
 
 StaticJsonDocument<2500> doc;
 
