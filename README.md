@@ -1,4 +1,4 @@
-# Nostraisa IoT demo
+# Nostr IoT demo
 
 ## Hardware instructions
 1. Connect the LED lamp to pins 15 and GND of a LilyGo TTGO
