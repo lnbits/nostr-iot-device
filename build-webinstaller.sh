@@ -1,5 +1,5 @@
 #!/bin/sh
-PROJECT_NAME=nostrasia-iot
+PROJECT_NAME=nostrIot
 RELEASE=https://github.com/lnbits/nostr-iot-device/releases/download
 INSTALLER_REPO=https://github.com/lnbits/hardware-installer
 INSTALLER_PATH=./hardware-installer/public/firmware
@@ -16,11 +16,11 @@ mkdir -p $INSTALLER_PATH
 for device in $(jq -r '.devices[]' ./hardware-installer/src/versions.json); do
     for version in $(jq -r '.versions[]' ./hardware-installer/src/versions.json); do
         mkdir -p $INSTALLER_PATH/$device/$version
-        wget $RELEASE/$version/$PROJECT_NAME.ino.bin
-        wget $RELEASE/$version/$PROJECT_NAME.ino.partitions.bin
-        wget $RELEASE/$version/$PROJECT_NAME.ino.bootloader.bin
-        mv $PROJECT_NAME.ino.bin $INSTALLER_PATH/$device/$version
-        mv $PROJECT_NAME.ino.partitions.bin $INSTALLER_PATH/$device/$version
-        mv $PROJECT_NAME.ino.bootloader.bin $INSTALLER_PATH/$device/$version
+        wget $RELEASE/$version/$PROJECT_NAME-$version.ino.bin
+        wget $RELEASE/$version/$PROJECT_NAME-$version.ino.partitions.bin
+        wget $RELEASE/$version/$PROJECT_NAME-$version.ino.bootloader.bin
+        mv $PROJECT_NAME-$version.ino.bin $INSTALLER_PATH/$device/$version/main.bin
+        mv $PROJECT_NAME-$version.ino.partitions.bin $INSTALLER_PATH/$device/$version/partitions.bin
+        mv $PROJECT_NAME-$version.ino.bootloader.bin $INSTALLER_PATH/$device/$version/bootloader.bin
     done
 done
